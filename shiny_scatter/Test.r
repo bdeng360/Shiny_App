@@ -94,12 +94,21 @@ server <- function(input, output) {
 # Make plot reactive to go button
     
     button <- eventReactive(input$go, {
-        linmod <- lm(dataInput()$y~dataInput()$x)
-        abline(linmod)
+        input$go
     })
     
     output$distPlot <- renderPlot({
         button()
+        linmod <- lm(dataInput()$y~dataInput()$x)
+        rmse <- round(sqrt(mean(resid(linmod)^2)), 2)
+        coefs <- coef(linmod)
+        b0 <- round(coefs[1], 2)
+        b1 <- round(coefs[2],2)
+        r2 <- round(summary(linmod)$r.squared, 2)
+        eqn <- bquote(italic(y) == .(b0) + .(b1)*italic(x) * "," ~~ 
+                          r^2 == .(r2) * "," ~~ RMSE == .(rmse))
+        abline(linmod)
+        text(1, 14, eqn, pos = 4)
     })
     
     output$distPlot <- renderPlot({
