@@ -99,6 +99,7 @@ server <- function(input, output) {
     
     output$statistics <- renderPrint({
         linmod <- lm(dataInput()$y~dataInput()$x)
+        summary(linmod)
         
     })
     
