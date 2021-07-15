@@ -8,12 +8,13 @@
 #
 
 library(shiny)
+library(ggplot2)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
 
     # Application title
-    titlePanel("Old Faithful Geyser Data"),
+    titlePanel("Regrex1 Scatter Data"),
 
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
@@ -23,6 +24,8 @@ ui <- fluidPage(
                       accept = c("text/csv",
                                  "text/comma-separated-values,text/plain",
                                  ".csv")),
+            
+            actionButton("go", "Go"),
             
             tags$hr(),
             
@@ -52,7 +55,9 @@ ui <- fluidPage(
         mainPanel(
            plotOutput("distPlot"),
            
-           textOutput("breaks"),
+           textOutput("statistics"),
+           
+           plotOutput("distPlot_lm"),
            
            tableOutput("contents")
         )
@@ -86,12 +91,34 @@ server <- function(input, output) {
         }
         
     })
-    
+# Make plot reactive to go button
     output$distPlot <- renderPlot({
         plot(dataInput()$x,dataInput()$y)
+        
     })
     
-}
+    output$statistics <- renderPrint({
+        linmod <- lm(dataInput()$y~dataInput()$x)
+        
+    })
+    
+    output$distPlot_lm <- renderPlot({
+        plot(dataInput()$x,dataInput()$y)
+        linmod <- lm(dataInput()$y~dataInput()$x)
+        rmse <- round(sqrt(mean(resid(linmod)^2)), 2)
+        coefs <- coef(linmod)
+        b0 <- round(coefs[1], 2)
+        b1 <- round(coefs[2],2)
+        r2 <- round(summary(linmod)$r.squared, 2)
+        eqn <- bquote(italic(y) == .(b0) + .(b1)*italic(x) * "," ~~ 
+                          r^2 == .(r2) * "," ~~ RMSE == .(rmse))
+        abline(linmod)
+        text(1, 14, eqn, pos = 4)
+    })
+        
+    }
+    
+
 
 # Run the application 
 shinyApp(ui = ui, server = server)
