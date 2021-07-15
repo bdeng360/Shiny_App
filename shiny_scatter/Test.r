@@ -25,7 +25,7 @@ ui <- fluidPage(
                                  "text/comma-separated-values,text/plain",
                                  ".csv")),
             
-            actionButton("go", "Go"),
+            actionButton("go", "Linear Regression"),
             
             tags$hr(),
             
@@ -92,6 +92,16 @@ server <- function(input, output) {
         
     })
 # Make plot reactive to go button
+    
+    button <- eventReactive(input$go, {
+        linmod <- lm(dataInput()$y~dataInput()$x)
+        abline(linmod)
+    })
+    
+    output$distPlot <- renderPlot({
+        button()
+    })
+    
     output$distPlot <- renderPlot({
         plot(dataInput()$x,dataInput()$y)
         
