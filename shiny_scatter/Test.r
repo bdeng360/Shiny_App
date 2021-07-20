@@ -55,7 +55,17 @@ ui <- fluidPage(
         mainPanel(
            plotOutput("distPlot"),
            
-           textOutput("statistics"),
+           h3("r-squared"),
+           
+           textOutput("rsquared"),
+           
+           h3("slope"),
+           
+           textOutput("slope"),
+           
+           h3("y-intercept"),
+           
+           textOutput("intercept"),
            
            plotOutput("distPlot_lm"),
            
@@ -93,46 +103,39 @@ server <- function(input, output) {
     })
 # Make plot reactive to go button
     
-    button <- eventReactive(input$go, {
-        input$go
-    })
-    
-    output$distPlot <- renderPlot({
-        button()
-        linmod <- lm(dataInput()$y~dataInput()$x)
-        rmse <- round(sqrt(mean(resid(linmod)^2)), 2)
-        coefs <- coef(linmod)
-        b0 <- round(coefs[1], 2)
-        b1 <- round(coefs[2],2)
-        r2 <- round(summary(linmod)$r.squared, 2)
-        eqn <- bquote(italic(y) == .(b0) + .(b1)*italic(x) * "," ~~ 
-                          r^2 == .(r2) * "," ~~ RMSE == .(rmse))
-        abline(linmod)
-        text(1, 14, eqn, pos = 4)
+    newlinmod <- eventReactive(input$go, {
+        lm(dataInput()$y~dataInput()$x)
     })
     
     output$distPlot <- renderPlot({
         plot(dataInput()$x,dataInput()$y)
-        
     })
     
-    output$statistics <- renderPrint({
-        linmod <- lm(dataInput()$y~dataInput()$x)
-        summary(linmod)
-        
+    
+    output$rsquared <- renderText({
+        print(round(summary(newlinmod())$r.squared, 2))
+    })
+    
+    output$slope <- renderText({
+        coefs <- coef(newlinmod())
+        print(round(coefs[2],2))
+    })
+    
+    output$intercept <- renderText({
+        coefs <- coef(newlinmod())
+        print(round(coefs[1], 2))
     })
     
     output$distPlot_lm <- renderPlot({
         plot(dataInput()$x,dataInput()$y)
-        linmod <- lm(dataInput()$y~dataInput()$x)
-        rmse <- round(sqrt(mean(resid(linmod)^2)), 2)
-        coefs <- coef(linmod)
+        rmse <- round(sqrt(mean(resid(newlinmod())^2)), 2)
+        coefs <- coef(newlinmod())
         b0 <- round(coefs[1], 2)
         b1 <- round(coefs[2],2)
-        r2 <- round(summary(linmod)$r.squared, 2)
+        r2 <- round(summary(newlinmod())$r.squared, 2)
         eqn <- bquote(italic(y) == .(b0) + .(b1)*italic(x) * "," ~~ 
                           r^2 == .(r2) * "," ~~ RMSE == .(rmse))
-        abline(linmod)
+        abline(newlinmod())
         text(1, 14, eqn, pos = 4)
     })
         
